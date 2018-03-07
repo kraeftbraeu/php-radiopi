@@ -8,16 +8,6 @@
 	<meta charset="utf-8"/>
 	<title>Raspberry Pi Internet Radio</title>
 	<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css" />
-	<style>
-		@media (max-width: 991px) {
-			body {
-				font-size: 200%;
-			}
-			.container {
-				max-width:100%;
-			}
-		}
-	</style>
 	<script language="javascript" type="text/javascript" src="js/jquery-2.1.3.min.js"></script>
 	<script language="javascript" type="text/javascript" src="js/script.js"></script>
 	<script defer src="js/fontawesome-all.min.js"></script>
@@ -68,15 +58,14 @@
 		<table id="playlist" class="table table-hover table-striped table-primary">
 			<tbody>
 <?php	$file = fopen($filename, "r");
-		$index = 1;
+		$index = 0;
 		while(!feof($file))
 		{
 			$sender = fgets($file, 1024);
 			if(!empty($sender) && substr($sender, 0, 1) != "#")
 			{
 ?>				<tr>
-					<td onclick="javascript:play(<?php echo $index; ?>);" class="addhide" style="width:100%; display:none; cursor:pointer;"><?php echo $sender; ?></td>
-					<td class="addhide" style="width:100%;"><?php echo $sender; ?></td>
+					<td onclick="javascript:play(<?php echo $index; ?>);" style="width:100%; cursor:pointer;"><?php echo $sender; ?></td>
 					<td onclick="javascript:removeEntry(<?php echo $index ?>);" class="addhide" style="cursor:pointer;">
 						<i class="fas fa-minus"></i>
 					</td>

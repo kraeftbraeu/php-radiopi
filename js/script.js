@@ -42,7 +42,7 @@ function removeEntry(index)
 {
 	doPost({
 		'do': 'file',
-		'index': index + 1
+		'index': index
 	});
 }
 
@@ -51,6 +51,13 @@ function addEntry()
 	doPost({
 		'do': 'file',
 		'url': $('#addurl').val()
+	});
+}
+
+function shutdown()
+{
+	doPost({
+		'do': 'shutdown'
 	});
 }
 

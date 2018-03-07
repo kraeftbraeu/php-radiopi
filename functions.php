@@ -13,17 +13,6 @@
 				$return .= execute("mpc play ".$index, true);
 			}
 		}
-		/*if($get == "add")
-		{
-			$url = getParameter("url");
-			if(!empty($url))
-			{				
-				$return .= execute("mpc clear", false);
-				$return .= execute("mpc load sender.m3u", false);
-				$return .= execute("mpc playlist", false);
-				//$return .= execute("mpc play ".$index, true);
-			}
-		}*/
 		if($get == "stop")
 		{
 			$return .= execute("mpc stop", false);
@@ -48,7 +37,8 @@
 		}
 		if($get == "shutdown")
 		{
-			$return .= execute("sudo shutdown -h now", true);
+			$return .= execute("sudo shutdown -h now", true); // TODO: geht ned
+			$return .= "<ul>\n\t<li>pi is shutting down</li></ul>\n";
 		}
 		return $return;
 	}
