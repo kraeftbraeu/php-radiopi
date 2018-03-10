@@ -81,3 +81,20 @@ function doPost(paramMap)
 		.appendTo('body')
 		.submit();
 }
+
+function loadStatus()
+{
+	$.ajax({
+		url: "loadStatus.php",
+		dataType: "json",
+		success: function(data, textstatus, jqxhr) {
+			if(data.volume !== undefined)
+				$("#volume").attr('value', data.volume);
+			if(data.playing !== undefined)
+				$("#status").html("playing: " + data.playing);
+		},
+		error: function(x) {
+			alert("error loading status");
+		}
+	});
+}

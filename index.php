@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <?php
-	$filename = "./sender.m3u";
 	include("functions.php");
+
+	$filename = "./sender.m3u";
+	$param = getParameter("do");
+	if(isset($param) && $param != null)
+		$executionResult = doExecution($param, $filename);
 ?>
 <html lang="de">
 <head>
@@ -19,26 +23,14 @@
 		}
 	</style>
 	<script language="javascript" type="text/javascript" src="js/jquery-2.1.3.min.js"></script>
-	<script language="javascript" type="text/javascript" src="js/script.js?v=20180310"></script>
+	<script language="javascript" type="text/javascript" src="js/script.js?v=2"></script>
 	<script defer src="js/fontawesome-all.min.js"></script>
 	<script>
 	$(document).ready(function()
 	{
 		toggle();
+		loadStatus();
 	});
-
-	function changeVolume(is) {
-		var volumeBar = $("#volume");
-		volume(volumeBar.val());
-
-		var other = is=="change" 
-			? "input" 
-			: "change";
-		volumeBar.removeAttr("on" + other);
-		setTimeout(function() {
-			volumeBar.attr("on" + other, "changeVolume('on" + other + "')");
-		}, 1000);
-	}
 	</script>
 </head>
 <body>
@@ -53,49 +45,24 @@
 			<a class="navbar-brand" href="javascript:toggle();">
 				<i class="fas fa-3x fa-wrench"></i>
 			</a>
-			<a class="navbar-brand" href="javascript:minus();">
-				<i class="fas fa-3x fa-volume-down"></i>
-			</a>
-			<a class="navbar-brand" href="javascript:plus();">
-				<i class="fas fa-3x fa-volume-up"></i>
-			</a>
 			<a class="navbar-brand" href="javascript:shutdown();">
 				<i class="fas fa-3x fa-power-off"></i>
 			</a>
 		</nav>
 		<nav class="navbar navbar-dark bg-primary navbar-fill">
 			<span class="input-group">
-				<span class="navbar-brand">
+				<a class="navbar-brand" href="javascript:minus();">
 					<i class="fas fa-3x fa-volume-down"></i>
-				</span>
+				</a>
 				<input id="volume" type="range" min=0 max=100 class="form-control" style="margin:24px" onchange="changeVolume('change')" oninput="changeVolume('input')" />
-				<span class="navbar-brand">
+				<a class="navbar-brand" href="javascript:plus();">
 					<i class="fas fa-3x fa-volume-up"></i>
-				</span>
+				</a>
 			</span>
 		</nav>
 		
-<?php
-	$param = getParameter("do");
-	if(isset($param) && $param != null)
-	{
-		$executionResult = doExecution($param, $filename);
-		if(!empty($executionResult) && $executionResult != "<ul>\n</ul>\n")
-		{
-			$volumePos = strpos($executionResult, "volume:");
-			if($volumePos !== false) {
-				$newVol = substr($executionResult, $volumePos + 7, 3);
-				if(strpos($newVol, " ") === 0)
-					$newVol = substr($newVol, 1);
-				echo "<script>$(document).ready(function(){ $('#volume').attr('value', ".$newVol."); });</script>";
-		}
-?>		<div id="status">
-			<?php echo $executionResult; ?>	
-		</div>
-<?php
-		}
-	}
-?>
+		<div id="status"></div>
+
 		<table id="playlist" class="table table-hover table-striped table-primary">
 			<tbody>
 <?php	$file = fopen($filename, "r");

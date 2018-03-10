@@ -7,29 +7,29 @@
 			$index = getParameter("index");
 			if(!empty($index))
 			{
-				$return .= execute("mpc clear", false);
-				$return .= execute("mpc load sender.m3u", false);
-				$return .= execute("mpc playlist", false);
-				$return .= execute("mpc play ".$index, true);
+				exec("mpc clear");
+				exec("mpc load sender.m3u");
+				exec("mpc playlist");
+				exec("mpc play ".$index);
 			}
 		}
 		if($get == "stop")
 		{
-			$return .= execute("mpc stop", false);
+			exec("mpc stop");
 		}
 		if($get == "plus")
 		{
-			$return .= execute("mpc volume +20", true);
+			exec("mpc volume +20");
 		}
 		if($get == "minus")
 		{
-			$return .= execute("mpc volume -20", true);
+			exec("mpc volume -20");
 		}
 		if($get == "volume")
 		{
 			$volume = getParameter("volume");
 			if(!empty($volume)) {
-				$return .= execute("mpc volume ".$volume, true);
+				exec("mpc volume ".$volume);
 			}
 		}
 		if($get == "file")
@@ -44,29 +44,11 @@
 		}
 		if($get == "shutdown")
 		{
-			$return .= execute("sudo shutdown -h now", true); // TODO: geht ned
-			$return .= "<ul>\n\t<li>pi is shutting down</li></ul>\n";
+			exec("sudo shutdown -h now"); // TODO: geht ned
 		}
 		return $return;
 	}
 
-	function execute($order, $doLog)
-	{
-		$result = "";
-		exec($order, $outputArray);
-		if($doLog)
-		{
-			//$result .= $order."<br/>\n";
-			$result .= "<ul>\n";
-			foreach ($outputArray as $entry)
-			{
-				$result .= "\t<li>".$entry."</li>\n";
-			}
-			$result .= "</ul>\n";
-		}
-		return $result;
-	}
-	
 	function getParameter($param)
 	{
 		$value = "";
@@ -103,5 +85,19 @@
 		$targetFile = fopen($targetName, "w") or die("Unable to open file!");
 		fwrite($targetFile, $content);
 		fclose($targetFile);
+	}
+
+	function changeVolume(is) {
+		var volumeBar = $("#volume");
+		volume(volumeBar.val());
+
+		// may be called by onchange() and oninput(), shall be executed not more than once
+		var other = is=="change" 
+			? "input" 
+			: "change";
+		volumeBar.removeAttr("on" + other);
+		setTimeout(function() {
+			volumeBar.attr("on" + other, "changeVolume('on" + other + "')");
+		}, 1000);
 	}
 ?>
