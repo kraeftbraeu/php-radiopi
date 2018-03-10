@@ -19,13 +19,26 @@
 		}
 	</style>
 	<script language="javascript" type="text/javascript" src="js/jquery-2.1.3.min.js"></script>
-	<script language="javascript" type="text/javascript" src="js/script.js"></script>
+	<script language="javascript" type="text/javascript" src="js/script.js?v=20180310"></script>
 	<script defer src="js/fontawesome-all.min.js"></script>
 	<script>
 	$(document).ready(function()
 	{
 		toggle();
 	});
+
+	function changeVolume(is) {
+		var volumeBar = $("#volume");
+		volume(volumeBar.val());
+
+		var other = is=="change" 
+			? "input" 
+			: "change";
+		volumeBar.removeAttr("on" + other);
+		setTimeout(function() {
+			volumeBar.attr("on" + other, "changeVolume('on" + other + "')");
+		}, 1000);
+	}
 	</script>
 </head>
 <body>
@@ -50,6 +63,17 @@
 				<i class="fas fa-3x fa-power-off"></i>
 			</a>
 		</nav>
+		<nav class="navbar navbar-dark bg-primary navbar-fill">
+			<span class="input-group">
+				<span class="navbar-brand">
+					<i class="fas fa-3x fa-volume-down"></i>
+				</span>
+				<input id="volume" type="range" min=0 max=100 class="form-control" style="margin:24px" onchange="changeVolume('change')" oninput="changeVolume('input')" />
+				<span class="navbar-brand">
+					<i class="fas fa-3x fa-volume-up"></i>
+				</span>
+			</span>
+		</nav>
 		
 <?php
 	$param = getParameter("do");
@@ -58,6 +82,13 @@
 		$executionResult = doExecution($param, $filename);
 		if(!empty($executionResult) && $executionResult != "<ul>\n</ul>\n")
 		{
+			$volumePos = strpos($executionResult, "volume:");
+			if($volumePos !== false) {
+				$newVol = substr($executionResult, $volumePos + 7, 3);
+				if(strpos($newVol, " ") === 0)
+					$newVol = substr($newVol, 1);
+				echo "<script>$(document).ready(function(){ $('#volume').attr('value', ".$newVol."); });</script>";
+		}
 ?>		<div id="status">
 			<?php echo $executionResult; ?>	
 		</div>

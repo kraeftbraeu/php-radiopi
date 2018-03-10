@@ -33,6 +33,14 @@ function minus()
 	});
 }
 
+function volume(volume)
+{
+	doPost({
+		'do': 'volume',
+		'volume': volume
+	});
+}
+
 function toggle()
 {
 	$(".addhide").toggle();

@@ -25,6 +25,13 @@
 		{
 			$return .= execute("mpc volume -20", true);
 		}
+		if($get == "volume")
+		{
+			$volume = getParameter("volume");
+			if(!empty($volume)) {
+				$return .= execute("mpc volume ".$volume, true);
+			}
+		}
 		if($get == "file")
 		{
 			$removeIndex = getParameter("index");

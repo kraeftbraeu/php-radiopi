@@ -1,0 +1,4 @@
+- mp3-player hinzufügen
+- power-knopf zum laufen bringen
+- lautstärke über scrollbar
+- play-button pro zeile einblenden, dann könnte es oben raus
