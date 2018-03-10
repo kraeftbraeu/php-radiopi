@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <?php
-	include("local.inc");
+	$filename = "./sender.m3u";
 	include("functions.php");
 ?>
 <html lang="de">
