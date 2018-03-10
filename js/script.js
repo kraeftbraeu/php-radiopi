@@ -98,3 +98,17 @@ function loadStatus()
 		}
 	});
 }
+
+function changeVolume(is) {
+	var volumeBar = $("#volume");
+	volume(volumeBar.val());
+
+	// may be called by onchange() and oninput(), shall be executed not more than once
+	var other = is=="change" 
+		? "input" 
+		: "change";
+	volumeBar.removeAttr("on" + other);
+	setTimeout(function() {
+		volumeBar.attr("on" + other, "changeVolume('on" + other + "')");
+	}, 1000);
+}
