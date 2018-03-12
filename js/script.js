@@ -89,7 +89,7 @@ function loadStatus()
 		dataType: "json",
 		success: function(data, textstatus, jqxhr) {
 			if(data.volume !== undefined)
-				$("#volume").attr('value', data.volume);
+				$("#volume").val(data.volume);
 			if(data.playing !== undefined)
 				$("#status").html("playing: " + data.playing);
 		},

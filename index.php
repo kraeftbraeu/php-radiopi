@@ -23,7 +23,7 @@
 		}
 	</style>
 	<script language="javascript" type="text/javascript" src="js/jquery-2.1.3.min.js"></script>
-	<script language="javascript" type="text/javascript" src="js/script.js?v=3"></script>
+	<script language="javascript" type="text/javascript" src="js/script.js?v=5"></script>
 	<script defer src="js/fontawesome-all.min.js"></script>
 	<script>
 	$(document).ready(function()
