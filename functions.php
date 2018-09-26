@@ -37,14 +37,17 @@
 			$removeIndex = getParameter("index");
 			if(empty($removeIndex) && $removeIndex != "0")
 				$removeIndex = -1;
-			$addUrl = getParameter("url");
+			$addName = getParameter("addName");
+			if(empty($addName))
+				$addName = "";
+			$addUrl = getParameter("addUrl");
 			if(empty($addUrl))
 				$addUrl = "";
-			copyFile($filename, $filename, $removeIndex, $addUrl);
+			copyFile($filename, $filename, $removeIndex, $addName, $addUrl);
 		}
 		if($get == "shutdown")
 		{
-			exec("sudo shutdown -h now"); // TODO: geht ned
+			exec("sudo shutdown -h 0"); // TODO: geht ned
 		}
 		return $return;
 	}
@@ -59,28 +62,34 @@
 		return $value;
 	}
 	
-	function copyFile($sourceName, $targetName, $removeIndex, $addUrl)
+	function copyFile($sourceName, $targetName, $removeIndex, $addName, $addUrl)
 	{
 		$content = "";
 		$sourceFile = fopen($sourceName, "r");
-		$index = 1;
+		$rowIndex = 1;
 		while(!feof($sourceFile))
 		{
 			$row = fgets($sourceFile, 1024);
-			// remove old row
 			if(!empty($row))
 			{
-				if(($removeIndex < 0 || $removeIndex != $index))
+				if($removeIndex < 0)
+					// no index to remove
 					$content .= $row;
-				if(substr($row, 0, 1) != "#")
-					$index++;
+				else if($rowIndex == 1)
+					// first row "#EXTM3U" is neccessary
+					$content .= $row;
+				else if ($rowIndex != 2 * $removeIndex
+					  && $rowIndex != 2 * $removeIndex + 1)
+					// keep everything except row to remove
+					$content .= $row;
+				$rowIndex++;
 			}
 		}
 		fclose($sourceFile);
 
 		// add new row
 		if(!empty($addUrl))
-			$content .= $addUrl."\r\n";
+			$content .= "#EXTINF:-1,".$addName."\r\n".$addUrl."\r\n";
 
 		$targetFile = fopen($targetName, "w") or die("Unable to open file!");
 		fwrite($targetFile, $content);

@@ -23,7 +23,7 @@
 		}
 	</style>
 	<script language="javascript" type="text/javascript" src="js/jquery-2.1.3.min.js"></script>
-	<script language="javascript" type="text/javascript" src="js/script.js?v=5"></script>
+	<script language="javascript" type="text/javascript" src="js/script.js?v=6"></script>
 	<script defer src="js/fontawesome-all.min.js"></script>
 	<script>
 	$(document).ready(function()
@@ -67,14 +67,21 @@
 			<tbody>
 <?php	$file = fopen($filename, "r");
 		$index = 1;
+		fgets($file, 1024); // ignore first row
 		while(!feof($file))
 		{
-			$sender = fgets($file, 1024);
-			if(!empty($sender) && substr($sender, 0, 1) != "#")
+			$senderName = fgets($file, 1024);
+			$senderUrl = fgets($file, 1024);
+			if(!empty($senderName) && substr($senderName, 0, 11) == "#EXTINF:-1," && !empty($senderUrl) && substr($senderUrl, 0, 1) != "#")
 			{
+				$senderName = substr($senderName, 11);
 ?>				<tr>
-					<td onclick="javascript:play(<?php echo $index; ?>);" class="addhide" style="width:100%; display:none; cursor:pointer;"><?php echo $sender; ?></td>
-					<td class="addhide" style="width:100%;"><?php echo $sender; ?></td>
+					<td onclick="javascript:play(<?php echo $index; ?>);" class="addhide" style="width:50%; display:none; cursor:pointer;"><?php echo $senderName; ?></td>
+					<td onclick="javascript:play(<?php echo $index; ?>);" class="addhide" style="width:50%; display:none; cursor:pointer;"><?php echo $senderUrl; ?></td>
+				
+					<td class="addhide" style="width:50%;"><?php echo $senderName; ?></td>
+					<td class="addhide" style="width:50%;"><?php echo $senderUrl; ?></td>
+				
 					<td onclick="javascript:removeEntry(<?php echo $index ?>);" class="addhide" style="cursor:pointer;">
 						<i class="fas fa-minus"></i>
 					</td>
@@ -85,7 +92,10 @@
 		fclose($file);
 ?>				<tr id="add" class="addhide">
 					<td>
-						<input type="text" id="addurl" class="form-control" />
+						<input type="text" id="addName" class="form-control" />
+					</td>
+					<td>
+						<input type="text" id="addUrl" class="form-control" />
 					</td>
 					<td onclick="javascript:addEntry();" style="cursor:pointer;">
 						<i class="fas fa-plus"></i>

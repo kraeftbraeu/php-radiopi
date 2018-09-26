@@ -1,4 +1,7 @@
+#EXTM3U
+#EXTINF:-1,Jam FM
 http://stream.jam.fm/jamfm-nmr/mp3-128/directUrl
+#EXTINF:-1,Energy München
 http://energyradio.de/muenchen
+#EXTINF:-1,Energy Relax
 http://energyradio.de/relax
-http://s16.myradiostream.com:13366

@@ -58,7 +58,8 @@ function addEntry()
 {
 	doPost({
 		'do': 'file',
-		'url': $('#addurl').val()
+		'addName': $('#addName').val(),
+		'addUrl': $('#addUrl').val()
 	});
 }
 
