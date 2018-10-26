@@ -65,7 +65,8 @@
 
 		<table id="playlist" class="table table-hover table-striped table-primary">
 			<tbody>
-<?php	$file = fopen($filename, "r");
+<?php	$maxUrlLength = 40;
+		$file = fopen($filename, "r");
 		$index = 1;
 		fgets($file, 1024); // ignore first row
 		while(!feof($file))
@@ -75,6 +76,8 @@
 			if(!empty($senderName) && substr($senderName, 0, 11) == "#EXTINF:-1," && !empty($senderUrl) && substr($senderUrl, 0, 1) != "#")
 			{
 				$senderName = substr($senderName, 11);
+				if(strlen($senderUrl) > $maxUrlLength)
+					$senderUrl = substr($senderUrl, 0, $maxUrlLength)."...";
 ?>				<tr>
 					<td onclick="javascript:play(<?php echo $index; ?>);" class="addhide" style="width:50%; display:none; cursor:pointer;"><?php echo $senderName; ?></td>
 					<td onclick="javascript:play(<?php echo $index; ?>);" class="addhide" style="width:50%; display:none; cursor:pointer;"><?php echo $senderUrl; ?></td>
