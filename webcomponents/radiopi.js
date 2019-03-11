@@ -1,10 +1,51 @@
 var rest = require("./rest.js");
+//var data = require("./data.js");
+var domUtil = require("./domUtil.js");
 
 customElements.define('mk-radiopi',
 	class RadioPi extends HTMLElement {
+
+		waiterDiv;
+		statusDiv;
+		volumeInput;
+
 		connectedCallback() {
 			let template = document.getElementById('tRadioPi').content.cloneNode(true);
-			document.body.appendChild(template);
+			this.appendChild(template);
+			this.waiterDiv = this.getElementById("waiter");
+			this.statusDiv = this.getElementById("status");
+			this.volumeInput = this.getElementById("volume");
+		}
+
+		addWait(waitItem) {
+			this.waiterDiv.classList.add(waitItem); // was wenn sich zwei identische waitItems überschneiden?
+			this.waiterDiv.style.display = "";
+		}
+		
+		removeWait(waitItem) {
+			this.waiterDiv.classList.remove(waitItem);
+			if(this.waiterDiv.classList.length == 0) {
+				this.waiterDiv.style.display = "none";
+			}
+		}
+
+		loadStatus()
+		{
+			rest.loadStatus().then(
+				data => this.printStatus(data)
+			).catch(error => {
+				this.printStatus("error loading status: " + error);
+				console.error(error);
+			});
+		}
+		
+		printStatus(data) {
+			if(data.volume !== undefined)
+				this.volumeInput.value = data.volume;
+			if(data.playing !== undefined && !data.playing.startsWith("volume:"))
+				statusDiv.innerText = "playing: " + data.playing;
+			else
+				statusDiv.innerText = "stopped";
 		}
 	}
 );
@@ -13,7 +54,10 @@ customElements.define('mk-button',
 	class RadioPiButton extends HTMLElement {
 
 		connectedCallback() {
-			let template = document.getElementById('tButton').content.cloneNode(true);
+			let template = domUtil.stringToHtml(`<script defer src="../js/fontawesome-all.min.js"></script>
+				<a class="navbar-brand">
+					<i class="fas fa-3x"></i>
+				</a>`);
 
 			let icon = this.getAttribute("icon");
 			if(icon) {
@@ -22,7 +66,7 @@ customElements.define('mk-button',
 				i.classList.add(icon);
 			}
 			this.addEventListener("click", e => {
-				console.log(this.getAttribute("do"));
+				console.log(this.getAttribute("do")); // TODO: string to executable function or subclasses
 			});
 			
 			this.appendChild(template);
@@ -33,13 +77,87 @@ customElements.define('mk-button',
 customElements.define('mk-playlist',
 	class RadioPiPlaylist extends HTMLElement {
 
+		senderList;
+		radioPi;
+
 		connectedCallback() {
 			let template = document.getElementById('tPlaylist').content.cloneNode(true);
-
-			let senderList = template.querySelector("tbody");
-			loadSenders(senderList);
-
 			this.appendChild(template);
+			this.senderList = this.querySelector("tbody");
+			this.radioPi = document.querySelector("mk-radiopi");
+			loadSenders();
+		}
+
+		clearSenders() {
+			while(this.senderList.firstChild) {
+				this.senderList.removeChild(this.senderList.firstChild);
+			}
+		}
+
+		loadSenders() {
+			this.clearSenders();
+			this.radioPi.addWait("loadSenders");
+			rest.loadSenders().then(list => {
+				for(let i = 0; i < list.length; i++) {
+					this.addSender(list[i].name, list[i].url);
+				}
+				this.radioPi.removeWait("loadSenders");
+			}).catch(error => {
+				this.radioPi.printStatus("error loading senders: " + error);
+				console.error(error);
+				this.radioPi.removeWait("loadSenders");
+			});
+		}
+
+		addSender(senderName, senderUrl) { // TODO: eigenes custom element
+			let senderTemplate = document.getElementById("tSenderRow").content.cloneNode(true);
+			let id = senderName + "-" + senderUrl + "-" + Math.random();
+			let index = senderList.childElementCount + 1;
+			senderTemplate.querySelectorAll("mk-button")[0].href = "javascript:play('" + index + "');";
+			senderTemplate.querySelectorAll("mk-button")[1].href = "javascript:removeSender('" + id + "');";
+			senderTemplate.querySelectorAll("mk-button")[2].href = "javascript:moveSender('" + id + "');";
+			let tr = senderTemplate.querySelector("tr");
+			tr.setAttribute("id", id);
+			this.senderList.append(senderTemplate);
+			return tr;
+		}
+
+		removeSender(senderId) {
+			this.senderList.removeChild(this.senderList.getElementById(senderId));
+		}
+
+		saveSenderList() {
+			// collect list
+			let trs = this.querySelectorAll("tbody tr");
+			let senders = [];
+			for(let i = 0; i < trs.length; i++) {
+				let inputs = trs[i].getElementsByTagName("input");
+				let senderName = inputs[0].value;
+				let senderUrl = inputs[1].value;
+				if(senderName != "" && senderUrl != "") {
+					let sender = {"name": senderName, "url": senderUrl};
+					senders.push(sender);
+				}
+			}
+			// send list
+			this.radioPi.addWait("saveSenders");
+			rest.saveSenders(senders).then(list => {
+				this.clearSenders();
+				for(let i = 0; i < list.length; i++) {
+					this.addSender(list[i].name, list[i].url);
+				}
+				this.radioPi.removeWait("saveSenders");
+			}).catch(error => {
+				this.radioPi.printStatus("error saving status: " + error);
+				console.error(error);
+				this.radioPi.removeWait("saveSenders");
+			});
+			this.toggleFromEdit();
+		}
+
+		resetSenderList() {
+			this.loadSenders();
+			this.toggleFromEdit();
 		}
 	}
 );
@@ -104,53 +222,6 @@ function doPost(paramMap, caller)
 		document.getElementById("status").innerText = "error loading status: " + error;
 		removeWait(caller);
 	});
-}
-
-function loadStatus()
-{
-	rest.loadStatus().then(
-		data => printStatus(data)
-	).catch(
-		error => document.getElementById("status").innerText = "error loading status: " + error
-	);
-}
-
-function printStatus(data) {
-	if(data.volume !== undefined)
-		document.getElementById("volume").value = data.volume;
-	if(data.playing !== undefined && !data.playing.startsWith("volume:"))
-		document.getElementById("status").innerText = "playing: " + data.playing;
-	else
-		document.getElementById("status").innerText = "stopped";
-}
-
-function addWait(waitItem) {
-	let waiter = document.getElementById("waiter");
-	waiter.classList.add(waitItem);
-	waiter.style.display = "";
-}
-
-function removeWait(waitItem) {
-	let waiter = document.getElementById("waiter");
-	waiter.classList.remove(waitItem);
-	if(waiter.classList.length == 0) {
-		waiter.style.display = "none";
-	}
-}
-
-function addSenderRow(senderList, senderName, senderUrl) {
-	let senderTemplate = document.getElementById("tSenderRow").content.cloneNode(true);
-	//senderTemplate.querySelector(".senderName").innerText = senderName;
-	//senderTemplate.querySelector(".senderUrl").innerText = senderUrl;
-	let id = senderName + "-" + senderUrl + "-" + Math.random();
-	let index = senderList.childElementCount + 1;
-	senderTemplate.querySelectorAll("mk-button")[0].href = "javascript:play('" + index + "');";
-	senderTemplate.querySelectorAll("mk-button")[1].href = "javascript:removeSender('" + id + "');";
-	senderTemplate.querySelectorAll("mk-button")[2].href = "javascript:moveSender('" + id + "');";
-	let tr = senderTemplate.querySelector("tr");
-	tr.setAttribute("id", id);
-	senderList.append(senderTemplate);
-	return tr;
 }
 
 function changeVolume(is) {
@@ -305,62 +376,6 @@ function clearSenders(senderList) {
 	}
 }
 
-function addSender() {
-	let tbody = document.querySelector("#playlist tbody");
-	let tr = addSenderRow(tbody, "", "");
-	this.switchRowToEdit(tr);
-}
-
 function removeSender(trId) {
 	document.querySelector("#playlist tbody").removeChild(document.getElementById(trId));
-}
-
-function resetSenders() {
-	let senderList = document.querySelector("#playlist tbody");
-	this.loadSenders(senderList);
-	this.toggleFromEdit();
-}
-
-function loadSenders(senderList)
-{
-	this.clearSenders(senderList);
-	addWait("loadSenders");
-	rest.loadSenders().then(list => {
-		for(let i = 0; i < list.length; i++) {
-			addSenderRow(senderList, list[i].name, list[i].url);
-		}
-		removeWait("loadSenders");
-	}).catch(error => {
-		console.error("error loading senders: " + error)
-		removeWait("loadSenders");
-	});
-}
-
-function saveSenders() {
-	// collect list
-	let trs = document.querySelectorAll("#playlist tbody tr");
-	let senders = [];
-	for(let i = 0; i < trs.length; i++) {
-		let inputs = trs[i].getElementsByTagName("input");
-		let senderName = inputs[0].value;
-		let senderUrl = inputs[1].value;
-		if(senderName != "" && senderUrl != "") {
-			let sender = {"name": senderName, "url": senderUrl};
-			senders.push(sender);
-		}
-	}
-	// send list
-	addWait("saveSenders");
-	rest.saveSenders(senders).then(list => {
-		let senderList = document.querySelector("#playlist tbody");
-		this.clearSenders(senderList);
-		for(let i = 0; i < list.length; i++) {
-			addSenderRow(senderList, list[i].name, list[i].url);
-		}
-		removeWait("saveSenders");
-	}).catch(error => {
-		console.error("error saving status: " + error)
-		removeWait("saveSenders");
-	});
-	this.toggleFromEdit();
 }

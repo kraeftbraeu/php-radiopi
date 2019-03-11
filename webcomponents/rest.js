@@ -1,6 +1,9 @@
 exports.doPost = function(paramMap)
 {
-	return fetch("../api.php", {
+	let serverUrl = "../api.php";
+	serverUrl = "../loadList.json";
+
+	return fetch(serverUrl, {
 		method: "POST",
 		dataType: "json",
 		headers: {
@@ -14,7 +17,7 @@ exports.doPost = function(paramMap)
 
 exports.doGet = function(paramString)
 {
-	return fetch("../api.php?" + paramString, {
+	return fetch(serverUrl + "?" + paramString, {
 		method: "GET",
 		dataType: "json",
 		headers: {

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+	<meta charset="utf-8"/>
+	<script>
+	document.addEventListener("DOMContentLoaded", function()
+	{
+	});
+
+	function stringToHtml(string) {
+		var wrapper = document.createElement("div");
+		wrapper.innerHTML = string;
+		return wrapper.firstChild;
+	}
+
+	customElements.define('mk-test',
+		class MkTest extends HTMLElement {
+
+			connectedCallback() {
+				let htmlTemplate = document.getElementById('htmlTempl').content.cloneNode(true);
+				htmlTemplate.querySelector("span").textContent = "filled";
+				document.body.appendChild(htmlTemplate);
+				
+				let jsTemplate = stringToHtml(`<p>This is from JS Template! <span></span></p>
+				`);
+				jsTemplate.querySelector("span").textContent = "filled";
+				document.body.appendChild(jsTemplate);
+			}
+		}
+	);
+	</script>
+</head>
+<body>
+	<template id="htmlTempl">
+		<p>This is from HTML Template! <span></span></p>
+	</template>
+
+	<mk-test></mk-test>
+</body>
+</html>
