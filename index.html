@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+	<meta charset="utf-8"/>
+	<title>Raspberry Pi Internet Radio</title>
+	<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css" />
+	<style>
+		@media (max-width: 991px) {
+			body {
+				font-size: 200%;
+			}
+			.container {
+				max-width: 100%;
+			}
+			.viewmode .senderUrl {
+				display: none;
+			}
+			td.senderName,
+			td.senderUrl {
+				width:45%;
+			}
+		}
+		@media (min-width: 992px) {
+			td.senderName {
+				width:20%;
+			}
+			td.senderUrl {
+				width:70%;
+			}
+		}
+		input {
+			width: 100%;
+		}
+		.viewmode .senderUrl {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		table {
+			table-layout: fixed;
+		}
+		td.senderButton {
+			width: 10%;
+		}
+		div#waiter {
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			background-color: #AAA;
+			width: 100%;
+			height: 100%;
+			z-index: 10;
+			opacity: 0.5;
+			cursor: wait;
+		}
+	</style>
+	<script language="javascript" type="text/javascript" src="js/script.js?v=3"></script>
+	<script defer src="js/fontawesome-all.min.js"></script>
+	<script>
+	document.addEventListener("DOMContentLoaded", function()
+	{
+		loadSenders();
+		recursiveStatusReload();
+	});
+	function recursiveStatusReload() {
+		loadStatus();
+		setTimeout(function() {
+			recursiveStatusReload();
+		}, document.getElementById("settingsReloadInterval").value * 1000);
+	}
+	</script>
+</head>
+<body>
+	<div class="container">
+		<nav class="navbar navbar-dark bg-primary navbar-fill">
+			<a class="navbar-brand" href="javascript:play();" id="play">
+				<i class="fas fa-3x fa-play"></i>
+			</a>
+			<a class="navbar-brand" href="javascript:stop();" id="stop">
+				<i class="fas fa-3x fa-stop"></i>
+			</a>
+			<a class="navbar-brand" href="javascript:toggleToEdit();" id="toggleToEdit">
+				<i class="fas fa-3x fa-list"></i>
+			</a>
+			<a class="navbar-brand" href="javascript:toggleSettings();" id="toggleSettings">
+				<i class="fas fa-3x fa-wrench"></i>
+			</a>
+		</nav>
+		<nav class="navbar navbar-dark bg-primary navbar-fill" id="volumebar">
+			<span class="input-group">
+				<a class="navbar-brand" href="javascript:minus();">
+					<i class="fas fa-3x fa-volume-down"></i>
+				</a>
+				<input id="volume" type="range" min=0 max=100 class="form-control" style="margin:24px" onchange="changeVolume('change')" oninput="changeVolume('input')" />
+				<a class="navbar-brand" href="javascript:plus();">
+					<i class="fas fa-3x fa-volume-up"></i>
+				</a>
+			</span>
+		</nav>
+		
+		<div id="status"></div>
+
+		<table id="playlist" class="table table-hover table-striped table-primary viewmode">
+			<thead style="display:none;">
+				<tr>
+					<td colspan="3" style="text-align:center;">
+						<a class="navbar-brand" href="javascript:saveSenders();">
+							<i class="fas fa-3x fa-save	"></i>
+						</a>
+						<a class="navbar-brand" href="javascript:resetSenders();">
+							<i class="fas fa-3x fa-trash-alt"></i>
+						</a>
+					</td>
+				</tr>
+			</thead>
+			<tbody></tbody>
+			<tfoot style="display:none; background-color:#fff;">
+				<tr>
+					<td></td>
+					<td></td>
+					<td>
+						<a class="navbar-brand" href="javascript:addSender();">
+							<i class="fas fa-2x fa-plus-square"></i>
+						</a>
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+
+		<table id="settingslist" class="table table-hover table-striped table-primary" style="display:none;">
+			<tbody>
+				<tr>
+					<td>Status reload interval in s:</td>
+					<td>
+						<input type="number" step="1" id="settingsReloadInterval" class="form-control" name="settingsReloadInterval" value="60"/>
+					</td>
+				</tr>
+				<tr>
+					<td>Shut down:</td>
+					<td>
+						<a class="navbar-brand" href="javascript:shutdown();">
+							<i class="fas fa-3x fa-power-off"></i>
+						</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div id="waiter" style="display:none"></div>
+</body>
+</html>
+<template id="senderRow">
+	<tr>
+		<td class="senderButton">
+			<a class="navbar-brand">
+				<i class="fas fa-3x fa-play"></i>
+			</a>
+		</td>
+		<td class="senderName"></td>
+		<td class="senderUrl"></td>
+		<td class="senderButton" style="display:none;">
+			<a class="navbar-brand">
+				<i class="fas fa-3x fa-trash-alt"></i>
+			</a>
+			<a class="navbar-brand">
+				<i class="fas fa-3x fa-arrows-alt-v"></i>
+			</a>
+		</td>
+	</tr>
+</template>

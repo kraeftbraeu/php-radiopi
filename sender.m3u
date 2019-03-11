@@ -9,3 +9,7 @@ http://energyradio.de/relax
 http://mp3.topfm.c.nmdn.net/ps-topfm/livestream.mp3
 #EXTINF:-1,Antenne Bayern
 http://mp3.webradio.antenne.de:80
+#EXTINF:-1,Bayern 3
+http://dg-br-http-dus-dtag-cdn.cast.addradio.de/br/br3/live/mp3/128/stream.mp3?ar-distributor=f0a0
+#EXTINF:-1,Radio Gong
+http://mp3.radiogong963.c.nmdn.net/fs_radiogong963/livestream.mp3?token=c3RhcnRUaW1lPTIwMTgxMDI2MTc1NzU4JmVuZFRpbWU9MjAxODEwMjYxOTU3NTgmaXB2ND0xODguMTA0LjEyLjIwOC8yNCZkaWdlc3Q9MjM5NmJkZjNiMzMzNDgzODg1ZDFjZTg3MTU1MzllZDE

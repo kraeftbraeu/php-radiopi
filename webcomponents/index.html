@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+	<meta charset="utf-8"/>
+	<title>Raspberry Pi Internet Radio</title>
+	<link rel="stylesheet" type="text/css" href="../bootstrap/css/bootstrap.min.css" />
+	<style>
+		@media (max-width: 991px) {
+			body {
+				font-size: 200%;
+			}
+			.container {
+				max-width: 100%;
+			}
+			.viewmode .senderUrl {
+				display: none;
+			}
+			td.senderName,
+			td.senderUrl {
+				width:45%;
+			}
+		}
+		@media (min-width: 992px) {
+			td.senderName {
+				width:20%;
+			}
+			td.senderUrl {
+				width:70%;
+			}
+		}
+		input {
+			width: 100%;
+		}
+		.viewmode .senderUrl {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		table {
+			table-layout: fixed;
+		}
+		td.senderButton {
+			width: 10%;
+		}
+		div#waiter {
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			background-color: #AAA;
+			width: 100%;
+			height: 100%;
+			z-index: 10;
+			opacity: 0.5;
+			cursor: wait;
+		}
+	</style>
+	<script src="radiopi.js"></script>
+	<!--script>
+	document.addEventListener("DOMContentLoaded", function()
+	{
+		loadSenders(document.querySelector("#playlist tbody"));
+		recursiveStatusReload();
+	});
+	function recursiveStatusReload() {
+		loadStatus();
+		setTimeout(function() {
+			recursiveStatusReload();
+		}, document.getElementById("settingsReloadInterval").value * 1000);
+	}
+	</script-->
+</head>
+<body>
+	<template id="tButton">
+		<script defer src="../js/fontawesome-all.min.js"></script>
+		<a class="navbar-brand">
+			<i class="fas fa-3x"></i>
+		</a>
+	</template>
+	<template id="tRadioPi">
+		<div>
+			<nav>
+				<mk-button do="play()" icon="fa-play">Play</mk-button>
+				<mk-button do="stop()" icon="fa-stop">Stop</mk-button>
+				<mk-button do="toggleToEdit()" icon="fa-list">Edit</mk-button>
+				<mk-button do="toggleSettings()" icon="fa-wrench">Settings</mk-button>
+			</nav>
+			<nav id="volumebar">
+				<span class="input-group">
+					<mk-button do="volume(-20)" icon="fa-volume-down">Volume down</mk-button>
+					<input id="volume" type="range" min=0 max=100 class="form-control" style="margin:24px" onchange="changeVolume('change')" oninput="changeVolume('input')" />
+					<mk-button do="volume(20)" icon="fa-volume-up">Volume up</mk-button>
+				</span>
+			</nav>
+			<div id="status"></div>
+		</div>
+		<div id="waiter" style="display:none"></div>
+		<mk-playlist></mk-playlist>
+	</template>
+	<template id="tPlaylist">
+		<table id="playlist" class="table table-hover table-striped table-primary viewmode">
+			<thead style="display:none;">
+				<tr>
+					<td colspan="3" style="text-align:center;">
+						<mk-button do="saveSenders()" icon="fa-save">Save senders</mk-button>
+						<mk-button do="resetSenders()" icon="fa-trash-alt">Reset senders</mk-button>
+					</td>
+				</tr>
+			</thead>
+			<tbody></tbody>
+			<tfoot style="display:none; background-color:#fff;">
+				<tr>
+					<td></td>
+					<td></td>
+					<td>
+						<mk-button do="addSender()" icon="fa-plus-square">Add sender</mk-button>
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+	</template>
+	<template id="tSettings">
+		<table id="settingslist" class="table table-hover table-striped table-primary" style="display:none;">
+			<tbody>
+				<tr>
+					<td>Status reload interval in s:</td>
+					<td>
+						<input type="number" step="1" id="settingsReloadInterval" class="form-control" name="settingsReloadInterval" value="60"/>
+					</td>
+				</tr>
+				<tr>
+					<td>Shut down:</td>
+					<td>
+						<mk-button do="shutDown()" icon="fa-power-off">Shut down</mk-button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</template>
+	<template id="tSenderRow">
+		<tr>
+			<td class="senderButton">
+				<mk-button do="play(this)">Play</mk-button>
+			</td>
+			<td>{{sender.name}}</td>
+			<td>{{sender.url}}</td>
+			<td class="senderButton" style="display:none;">
+				<mk-button do="delete(this)" icon="fa-trash-alt">Delete</mk-button>
+				<mk-button do="move(this)" icon="fa-arrows-alt-v">Move</mk-button>
+			</td>
+		</tr>
+	</template>
+
+	<mk-radiopi></mk-radiopi>
+</body>
+</html>

@@ -1,3 +1,49 @@
+var rest = require("./rest.js");
+
+customElements.define('mk-radiopi',
+	class RadioPi extends HTMLElement {
+		connectedCallback() {
+			let template = document.getElementById('tRadioPi').content.cloneNode(true);
+			document.body.appendChild(template);
+		}
+	}
+);
+
+customElements.define('mk-button',
+	class RadioPiButton extends HTMLElement {
+
+		connectedCallback() {
+			let template = document.getElementById('tButton').content.cloneNode(true);
+
+			let icon = this.getAttribute("icon");
+			if(icon) {
+				this.textContent = "";
+				let i = template.querySelectorAll("i")[0];
+				i.classList.add(icon);
+			}
+			this.addEventListener("click", e => {
+				console.log(this.getAttribute("do"));
+			});
+			
+			this.appendChild(template);
+		}
+	}
+);
+
+customElements.define('mk-playlist',
+	class RadioPiPlaylist extends HTMLElement {
+
+		connectedCallback() {
+			let template = document.getElementById('tPlaylist').content.cloneNode(true);
+
+			let senderList = template.querySelector("tbody");
+			loadSenders(senderList);
+
+			this.appendChild(template);
+		}
+	}
+);
+
 function play()
 {
 	play(1);
@@ -51,16 +97,7 @@ function shutdown()
 function doPost(paramMap, caller)
 {
 	addWait(caller);
-	return fetch("api.php", {
-		method: "POST",
-		dataType: "json",
-		headers: {
-			"Content-Type": "application/json;charset=UTF-8"
-		},
-		body: JSON.stringify(paramMap)
-	}).then(
-		res => res.json()
-	).then(data => {
+	rest.doPost(paramMap, caller).then(data => {
 		printStatus(data);
 		removeWait(caller);
 	}).catch(error => {
@@ -71,15 +108,7 @@ function doPost(paramMap, caller)
 
 function loadStatus()
 {
-	fetch("api.php?do=status", {
-		method: "GET",
-		dataType: "json",
-		headers: {
-			"Content-Type": "application/json;charset=UTF-8"
-		}
-	}).then(
-		res => res.json()
-	).then(
+	rest.loadStatus().then(
 		data => printStatus(data)
 	).catch(
 		error => document.getElementById("status").innerText = "error loading status: " + error
@@ -110,14 +139,14 @@ function removeWait(waitItem) {
 }
 
 function addSenderRow(senderList, senderName, senderUrl) {
-	let senderTemplate = document.querySelector("#senderRow").content.cloneNode(true);
-	senderTemplate.querySelector(".senderName").innerText = senderName;
-	senderTemplate.querySelector(".senderUrl").innerText = senderUrl;
+	let senderTemplate = document.getElementById("tSenderRow").content.cloneNode(true);
+	//senderTemplate.querySelector(".senderName").innerText = senderName;
+	//senderTemplate.querySelector(".senderUrl").innerText = senderUrl;
 	let id = senderName + "-" + senderUrl + "-" + Math.random();
 	let index = senderList.childElementCount + 1;
-	senderTemplate.querySelectorAll("a")[0].href = "javascript:play('" + index + "');";
-	senderTemplate.querySelectorAll("a")[1].href = "javascript:removeSender('" + id + "');";
-	senderTemplate.querySelectorAll("a")[2].href = "javascript:moveSender('" + id + "');";
+	senderTemplate.querySelectorAll("mk-button")[0].href = "javascript:play('" + index + "');";
+	senderTemplate.querySelectorAll("mk-button")[1].href = "javascript:removeSender('" + id + "');";
+	senderTemplate.querySelectorAll("mk-button")[2].href = "javascript:moveSender('" + id + "');";
 	let tr = senderTemplate.querySelector("tr");
 	tr.setAttribute("id", id);
 	senderList.append(senderTemplate);
@@ -270,6 +299,12 @@ function handleDragStart(event) {
 	this.style.opacity = "0.4";
 }
 
+function clearSenders(senderList) {
+	while(senderList.firstChild) {
+		senderList.removeChild(senderList.firstChild);
+	}
+}
+
 function addSender() {
 	let tbody = document.querySelector("#playlist tbody");
 	let tr = addSenderRow(tbody, "", "");
@@ -281,23 +316,16 @@ function removeSender(trId) {
 }
 
 function resetSenders() {
-	this.loadSenders();
+	let senderList = document.querySelector("#playlist tbody");
+	this.loadSenders(senderList);
 	this.toggleFromEdit();
 }
 
-function loadSenders()
+function loadSenders(senderList)
 {
-	let senderList = document.querySelector("#playlist tbody");
-	while(senderList.firstChild) {
-		senderList.removeChild(senderList.firstChild);
-	}
+	this.clearSenders(senderList);
 	addWait("loadSenders");
-	fetch("api.php?do=load", {
-		method: "GET",
-		dataType: "json"
-	}).then(
-		res => res.json()
-	).then(list => {
+	rest.loadSenders().then(list => {
 		for(let i = 0; i < list.length; i++) {
 			addSenderRow(senderList, list[i].name, list[i].url);
 		}
@@ -323,23 +351,9 @@ function saveSenders() {
 	}
 	// send list
 	addWait("saveSenders");
-	fetch("api.php", {
-		method: "POST",
-		dataType: "json",
-		headers: {
-			"Content-Type": "application/json;charset=UTF-8"
-		},
-		body: JSON.stringify({
-			"do": "save",
-			"senders": senders
-		})
-	}).then(
-		res => res.json()
-	).then(list => {
+	rest.saveSenders(senders).then(list => {
 		let senderList = document.querySelector("#playlist tbody");
-		while(senderList.firstChild) {
-			senderList.removeChild(senderList.firstChild);
-		}
+		this.clearSenders(senderList);
 		for(let i = 0; i < list.length; i++) {
 			addSenderRow(senderList, list[i].name, list[i].url);
 		}

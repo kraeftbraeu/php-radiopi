@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+	<meta charset="utf-8"/>
+	<title>Raspberry Pi Internet Radio Test</title>
+	<style>
+		td {
+			border: 1px solid black;
+		}
+	</style>
+	<script>
+		document.addEventListener("DOMContentLoaded", function()
+		{
+			testStatus();
+		});
+		function testStatus() {
+			let tds = document.getElementById("status").getElementsByTagName("td");
+			let expected = tds[1];
+			let result = tds[2];
+			fetch("http://192.168.2.100/radiopi/api.php?do=status", {
+				method: "GET",
+				dataType: "json",
+				headers: {
+					"Content-Type": "application/json;charset=UTF-8"
+				}
+			}).then(
+				res => res.json()
+			).then(data => {
+				result.textContent = JSON.stringify(data);
+				if(expected.textContent === result.textContent)
+					result.style.backgroundColor = "lightgreen";
+				else
+					result.style.backgroundColor = "yellow";
+			}).catch(error => {
+				result.textContent = error;
+				result.style.backgroundColor = "red";
+
+			});
+		}
+	</script>
+</head>
+<body>
+	<table>
+		<thead>
+			<tr>
+				<td>test</td>
+				<td>expected</td>
+				<td>result</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr id="status">
+				<td>status</td>
+				<td>{"volume":"100"}</td>
+				<td></td>
+			</tr>
+		</tbody>
+	</table>
+</body>
+</html>
